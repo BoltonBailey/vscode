@@ -88,7 +88,7 @@ export class ReleaseNotesManager {
 			this._currentReleaseNotes.webview.onDidClickLink(uri => this.onDidClickLink(URI.parse(uri)));
 			this._currentReleaseNotes.onDispose(() => { this._currentReleaseNotes = undefined; });
 
-			const iconPath = URI.parse(require.toUrl('./media/code-icon.svg'));
+			const iconPath = URI.parse(require.toUrl('vs/workbench/browser/media/code-icon.svg'));
 			this._currentReleaseNotes.iconPath = {
 				light: iconPath,
 				dark: iconPath
@@ -164,8 +164,8 @@ export class ReleaseNotesManager {
 			.then(undefined, onUnexpectedError);
 	}
 
-	private async  addGAParameters(uri: URI, origin: string, experiment = '1'): Promise<URI> {
-		if (this._environmentService.isBuilt && !this._environmentService.isExtensionDevelopment && !this._environmentService.args['disable-telemetry'] && !!this._productService.enableTelemetry) {
+	private async addGAParameters(uri: URI, origin: string, experiment = '1'): Promise<URI> {
+		if (this._environmentService.isBuilt && !this._environmentService.isExtensionDevelopment && !this._environmentService.disableTelemetry && !!this._productService.enableTelemetry) {
 			if (uri.scheme === 'https' && uri.authority === 'code.visualstudio.com') {
 				const info = await this._telemetryService.getTelemetryInfo();
 

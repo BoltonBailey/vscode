@@ -509,8 +509,10 @@ export function containsDragType(event: DragEvent, ...dragTypesToFind: string[])
 	return false;
 }
 
+export type Before2D = { verticallyBefore: boolean; horizontallyBefore: boolean; };
+
 export interface ICompositeDragAndDrop {
-	drop(data: IDragAndDropData, target: string | undefined, originalEvent: DragEvent, before?: boolean): void;
+	drop(data: IDragAndDropData, target: string | undefined, originalEvent: DragEvent, before?: Before2D): void;
 	onDragOver(data: IDragAndDropData, target: string | undefined, originalEvent: DragEvent): boolean;
 	onDragEnter(data: IDragAndDropData, target: string | undefined, originalEvent: DragEvent): boolean;
 }
@@ -574,6 +576,15 @@ export class CompositeDragAndDropObserver extends Disposable {
 	private constructor() {
 		super();
 		this.transferData = LocalSelectionTransfer.getInstance<DraggedCompositeIdentifier | DraggedViewIdentifier>();
+
+		this._register(this._onDragEnd.event(e => {
+			const id = e.dragAndDropData.getData().id;
+			const type = e.dragAndDropData.getData().type;
+			const data = this.readDragData(type);
+			if (data && data.getData().id === id) {
+				this.transferData.clearData(type === 'view' ? DraggedViewIdentifier.prototype : DraggedCompositeIdentifier.prototype);
+			}
+		}));
 	}
 	private readDragData(type: ViewType): CompositeDragAndDropData | undefined {
 		if (this.transferData.hasData(type === 'view' ? DraggedViewIdentifier.prototype : DraggedCompositeIdentifier.prototype)) {
@@ -656,12 +667,8 @@ export class CompositeDragAndDropObserver extends Disposable {
 		}));
 		disposableStore.add(new DragAndDropObserver(element, {
 			onDragEnd: e => {
-				const { id, type } = draggedItemProvider();
-
+				const { type } = draggedItemProvider();
 				const data = this.readDragData(type);
-				if (data && data.getData().id === id) {
-					this.transferData.clearData(type === 'view' ? DraggedViewIdentifier.prototype : DraggedCompositeIdentifier.prototype);
-				}
 
 				if (!data) {
 					return;
